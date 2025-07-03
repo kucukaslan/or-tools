@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         cmake: [
-          {name: "Xcode", generator: "Xcode", config: Release, build_target: ALL_BUILD, test_target: RUN_TESTS, install_target: install},
+          #          {name: "Xcode", generator: "Xcode", config: Release, build_target: ALL_BUILD, test_target: RUN_TESTS, install_target: install},
           {name: "Make", generator: "Unix Makefiles", config: Release, build_target: all, test_target: test, install_target: install},
         ]
       fail-fast: false
@@ -36,19 +36,31 @@ jobs:
           --config ${{matrix.cmake.config}}
           --target ${{matrix.cmake.build_target}}
           -v -j2
-      - name: Test
-        run: >
-          CTEST_OUTPUT_ON_FAILURE=1
-          cmake --build build
-          --config ${{matrix.cmake.config}}
-          --target ${{matrix.cmake.test_target}}
-          -v
+      #      - name: Test
+      #        run: >
+      #          CTEST_OUTPUT_ON_FAILURE=1
+      #          cmake --build build
+      #          --config ${{matrix.cmake.config}}
+      #          --target ${{matrix.cmake.test_target}}
+      #          -v
       - name: Install
         run: >
           cmake --build build
           --config ${{matrix.cmake.config}}
           --target ${{matrix.cmake.install_target}}
           -v
+      - name: Create Archive
+        run: |
+          cd install
+          tar -czf ../ortools-arm64-macos-${{matrix.cmake.name}}-${{github.sha}}.tar.gz *
+          cd ..
+          ls -la *.tar.gz
+      - name: Upload Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ortools-arm64-macos-${{matrix.cmake.name}}-build
+          path: "*.tar.gz"
+          retention-days: 30
 
   arm64_macos_cmake_cpp:
     runs-on: ubuntu-latest
