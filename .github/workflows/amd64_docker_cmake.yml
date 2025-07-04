@@ -39,3 +39,22 @@ jobs:
         run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_build
       - name: Test install project
         run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_test
+      
+      - name: Package binaries
+        run: |
+          mkdir -p artifacts/${{matrix.distro}}-${{matrix.lang}}
+          # Extract binaries from the Docker container
+          docker create --name temp_container amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
+          docker cp temp_container:/usr/local/bin/. artifacts/${{matrix.distro}}-${{matrix.lang}}/bin/ || true
+          docker cp temp_container:/usr/local/lib/. artifacts/${{matrix.distro}}-${{matrix.lang}}/lib/ || true
+          docker cp temp_container:/usr/local/include/. artifacts/${{matrix.distro}}-${{matrix.lang}}/include/ || true
+          docker rm temp_container
+          # Create a tarball
+          tar -czf or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz -C artifacts/${{matrix.distro}}-${{matrix.lang}} .
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64
+          path: or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz
+          retention-days: 30

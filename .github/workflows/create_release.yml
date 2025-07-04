@@ -1,0 +1,48 @@
+# Create releases when tags are pushed
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  upload_assets:
+    needs: create_release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Upload Release Assets
+        run: |
+          for artifact in artifacts/*/; do
+            artifact_name=$(basename "$artifact")
+            for file in "$artifact"/*; do
+              if [[ -f "$file" ]]; then
+                echo "Uploading $file as $artifact_name-$(basename "$file")"
+                curl -X POST \
+                  -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                  -H "Content-Type: application/octet-stream" \
+                  --data-binary @"$file" \
+                  "${{ needs.create_release.outputs.upload_url }}?name=$artifact_name-$(basename "$file")"
+              fi
+            done
+          done
