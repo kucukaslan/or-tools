@@ -3054,6 +3054,9 @@ const Assignment* RoutingModel::Solve(const Assignment* assignment) {
 const Assignment* RoutingModel::SolveWithParameters(
     const RoutingSearchParameters& parameters,
     std::vector<const Assignment*>* solutions) {
+    LOG(INFO) << absl::StrFormat(
+      "RoutingModel::SolveWithParameters called with: %s", parameters.DebugString());
+  
   return SolveFromAssignmentWithParameters(nullptr, parameters, solutions);
 }
 

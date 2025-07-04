@@ -1,6 +1,6 @@
 name: amd64 FreeBSD CMake
 
-on: [push, pull_request, workflow_dispatch]
+on: workflow_dispatch
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
