@@ -34,14 +34,8 @@ jobs:
       - name: Build install env image
         run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_env
       - name: Build install devel image
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
-      - name: Build install project
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_build
-      - name: Test install project
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_test
-      
-      - name: Package binaries
         run: |
+          make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
           mkdir -p artifacts/${{matrix.distro}}-${{matrix.lang}}
           # Extract binaries from the Docker container
           docker create --name temp_container amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
@@ -51,7 +45,11 @@ jobs:
           docker rm temp_container
           # Create a tarball
           tar -czf or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz -C artifacts/${{matrix.distro}}-${{matrix.lang}} .
-      
+      - name: Build install project
+        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_build
+      - name: Test install project
+        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_test
+            
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
