@@ -38,7 +38,7 @@ jobs:
           make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
           mkdir -p artifacts/${{matrix.distro}}-${{matrix.lang}}
           # Extract binaries from the Docker container
-          docker create --name temp_container amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
+          docker create --name temp_container ortools/cmake:amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
           docker cp temp_container:/usr/local/bin/. artifacts/${{matrix.distro}}-${{matrix.lang}}/bin/ || true
           docker cp temp_container:/usr/local/lib/. artifacts/${{matrix.distro}}-${{matrix.lang}}/lib/ || true
           docker cp temp_container:/usr/local/include/. artifacts/${{matrix.distro}}-${{matrix.lang}}/include/ || true
