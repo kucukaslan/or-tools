@@ -38,16 +38,6 @@ jobs:
             ${{ runner.os }}-buildx-${{ matrix.distro }}-${{ matrix.lang }}-
             ${{ runner.os }}-buildx-${{ matrix.distro }}-
             ${{ runner.os }}-buildx-
-      
-      - name: Cache ccache
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.ccache-cache
-          key: ${{ runner.os }}-ccache-${{ matrix.distro }}-${{ matrix.lang }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-ccache-${{ matrix.distro }}-${{ matrix.lang }}-
-            ${{ runner.os }}-ccache-${{ matrix.distro }}-
-            ${{ runner.os }}-ccache-
       # - name: Build base image
       #   run: make --directory=cmake amd64_${{matrix.distro}}_base
       # - name: Build env image
@@ -70,17 +60,13 @@ jobs:
           export CACHE_FROM="type=local,src=/tmp/.buildx-cache"
           export CACHE_TO="type=local,dest=/tmp/.buildx-cache-new,mode=max"
           
-          # Prepare ccache directory
-          mkdir -p /tmp/.ccache-cache
-          
-          # Use buildx for better performance with build cache mounts
+          # Use buildx for better performance with registry caching
           docker buildx build \
             --platform linux/amd64 \
             --target install_devel \
             --tag ortools/cmake:amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel \
             --cache-from $CACHE_FROM \
             --cache-to $CACHE_TO \
-            --cache-mount type=bind,source=/tmp/.ccache-cache,target=/root/.ccache \
             --load \
             -f cmake/docker/${{matrix.distro}}/${{matrix.lang}}.Dockerfile \
             .
