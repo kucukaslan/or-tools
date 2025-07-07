@@ -38,8 +38,8 @@ jobs:
             ${{ runner.os }}-buildx-${{ matrix.distro }}-${{ matrix.lang }}-
             ${{ runner.os }}-buildx-${{ matrix.distro }}-
             ${{ runner.os }}-buildx-
-      # - name: Build base image
-      #   run: make --directory=cmake amd64_${{matrix.distro}}_base
+      - name: Build base image
+        run: make --directory=cmake amd64_${{matrix.distro}}_base
       # - name: Build env image
       #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_env
       # - name: Build devel image
