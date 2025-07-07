@@ -3054,9 +3054,12 @@ const Assignment* RoutingModel::Solve(const Assignment* assignment) {
 const Assignment* RoutingModel::SolveWithParameters(
     const RoutingSearchParameters& parameters,
     std::vector<const Assignment*>* solutions) {
+
+    // now we will log compile date for this file to help with debugging
     LOG(INFO) << absl::StrFormat(
-      "RoutingModel::SolveWithParameters called with: %s", parameters.DebugString());
-  
+      "RoutingModel compiled on: %s", __DATE__ " " __TIME__);
+    LOG(INFO) << absl::StrFormat(
+      "RoutingModel::SolveWithParameters called with: %s", parameters.DebugString());     
   return SolveFromAssignmentWithParameters(nullptr, parameters, solutions);
 }
 
