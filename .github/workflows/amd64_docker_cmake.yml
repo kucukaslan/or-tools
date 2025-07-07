@@ -59,11 +59,11 @@ jobs:
 
       - name: Create Release (only on tags)
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+        run: |
+          # Create release using GitHub CLI
+          gh release create ${{ github.ref_name }} \
+            or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz \
+            --title "Release ${{ github.ref_name }}" \
+            --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
