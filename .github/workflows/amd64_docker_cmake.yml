@@ -18,8 +18,36 @@ jobs:
       fail-fast: false
     name: amd64•${{matrix.distro}}•CMake•${{matrix.lang}}
     runs-on: ubuntu-latest
+    timeout-minutes: 180  # 3 hour timeout, should be faster with optimizations
     steps:
       - uses: actions/checkout@v4
+      
+      # Enable Docker BuildKit for better performance and caching
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+      
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.distro }}-${{ matrix.lang }}-${{ hashFiles('**/CMakeLists.txt', '**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.distro }}-${{ matrix.lang }}-
+            ${{ runner.os }}-buildx-${{ matrix.distro }}-
+            ${{ runner.os }}-buildx-
+      
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.ccache-cache
+          key: ${{ runner.os }}-ccache-${{ matrix.distro }}-${{ matrix.lang }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ matrix.distro }}-${{ matrix.lang }}-
+            ${{ runner.os }}-ccache-${{ matrix.distro }}-
+            ${{ runner.os }}-ccache-
       # - name: Build base image
       #   run: make --directory=cmake amd64_${{matrix.distro}}_base
       # - name: Build env image
@@ -34,8 +62,33 @@ jobs:
       # - name: Build install env image
       #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_env
       - name: Build install devel image
+        env:
+          DOCKER_BUILDKIT: 1
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 1
         run: |
-          make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
+          # Export cache options for faster builds
+          export CACHE_FROM="type=local,src=/tmp/.buildx-cache"
+          export CACHE_TO="type=local,dest=/tmp/.buildx-cache-new,mode=max"
+          
+          # Prepare ccache directory
+          mkdir -p /tmp/.ccache-cache
+          
+          # Use buildx for better performance with build cache mounts
+          docker buildx build \
+            --platform linux/amd64 \
+            --target install_devel \
+            --tag ortools/cmake:amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel \
+            --cache-from $CACHE_FROM \
+            --cache-to $CACHE_TO \
+            --cache-mount type=bind,source=/tmp/.ccache-cache,target=/root/.ccache \
+            --load \
+            -f cmake/docker/${{matrix.distro}}/${{matrix.lang}}.Dockerfile \
+            .
+          
+          # Replace old cache
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          
           mkdir -p artifacts/${{matrix.distro}}-${{matrix.lang}}
           # Extract binaries from the Docker container
           docker create --name temp_container ortools/cmake:amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
