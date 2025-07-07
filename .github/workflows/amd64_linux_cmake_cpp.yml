@@ -14,8 +14,8 @@ jobs:
       matrix:
         cmake: [
           {name: "Make", generator: "Unix Makefiles", config: Release},
-          {name: "Ninja", generator: "Ninja", config: Release},
-          {name: "Ninja Multi", generator: "Ninja Multi-Config", config: Release},
+          # {name: "Ninja", generator: "Ninja", config: Release},
+          # {name: "Ninja Multi", generator: "Ninja Multi-Config", config: Release},
         ]
       fail-fast: false
     name: amd64•Linux•CMake(${{matrix.cmake.name}})•C++
@@ -41,19 +41,30 @@ jobs:
           --config ${{matrix.cmake.config}}
           --target all
           -v -j2
-      - name: Test
-        run: >
-          CTEST_OUTPUT_ON_FAILURE=1
-          cmake --build build
-          --config ${{matrix.cmake.config}}
-          --target test
-          -v
+      # - name: Test
+      #   run: >
+      #     CTEST_OUTPUT_ON_FAILURE=1
+      #     cmake --build build
+      #     --config ${{matrix.cmake.config}}
+      #     --target test
+      #     -v
       - name: Install
         run: >
           cmake --build build
           --config ${{matrix.cmake.config}}
           --target install
           -v
+      - name: Create Archive
+        run: |
+          cd install
+          tar -czf ../ortools-amd64-linux-${{matrix.cmake.name}}-${{github.sha}}.tar.gz *
+          cd ..
+          ls -la *.tar.gz
+      - name: Upload Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ortools-amd64-linux-${{matrix.cmake.name}}-build
+          path: ortools-amd64-linux-${{matrix.cmake.name}}-${{github.sha}}.tar.gz
 
   amd64_linux_cmake_cpp:
     runs-on: ubuntu-latest

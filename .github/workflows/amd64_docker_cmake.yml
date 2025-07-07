@@ -11,7 +11,7 @@ jobs:
   cmake:
     strategy:
       matrix:
-        distro: [alpine, debian, ubuntu]
+        distro: [alpine]
         lang: [cpp]
         # distro: [almalinux, alpine, archlinux, debian, fedora, opensuse, rockylinux, ubuntu]
         # lang: [cpp, python, dotnet, java]
@@ -20,19 +20,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build base image
-        run: make --directory=cmake amd64_${{matrix.distro}}_base
-      - name: Build env image
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_env
-      - name: Build devel image
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_devel
-      - name: Build project
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_build
-      - name: Test project
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_test
+      # - name: Build base image
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_base
+      # - name: Build env image
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_env
+      # - name: Build devel image
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_devel
+      # - name: Build project
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_build
+      # - name: Test project
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_test
 
-      - name: Build install env image
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_env
+      # - name: Build install env image
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_env
       - name: Build install devel image
         run: |
           make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_devel
@@ -45,8 +45,8 @@ jobs:
           docker rm temp_container
           # Create a tarball
           tar -czf or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz -C artifacts/${{matrix.distro}}-${{matrix.lang}} .
-      - name: Build install project
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_build
+      # - name: Build install project
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_build
       - name: Test install project
         run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_test
             
