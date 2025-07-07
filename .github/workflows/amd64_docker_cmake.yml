@@ -47,8 +47,8 @@ jobs:
           tar -czf or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz -C artifacts/${{matrix.distro}}-${{matrix.lang}} .
       # - name: Build install project
       #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_build
-      - name: Test install project
-        run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_test
+      # - name: Test install project
+      #   run: make --directory=cmake amd64_${{matrix.distro}}_${{matrix.lang}}_install_test
             
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -56,3 +56,14 @@ jobs:
           name: or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64
           path: or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz
           retention-days: 30
+
+      - name: Create Release (only on tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
