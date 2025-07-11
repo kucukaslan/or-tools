@@ -61,13 +61,21 @@ jobs:
           path: or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz
           retention-days: 30
 
-      - name: Create Release (only on tags)
+      - name: Check for existing release and upload artifact (only on tags)
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          # Create release using GitHub CLI
-          gh release create ${{ github.ref_name }} \
-            or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz \
-            --title "Release ${{ github.ref_name }}" \
-            --generate-notes
+          # Check if release already exists
+          if gh release view ${{ github.ref_name }} >/dev/null 2>&1; then
+            echo "Release ${{ github.ref_name }} already exists. Uploading artifact to existing release..."
+            gh release upload ${{ github.ref_name }} \
+              or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz \
+              --clobber
+          else
+            echo "Release ${{ github.ref_name }} does not exist. Creating new release..."
+            gh release create ${{ github.ref_name }} \
+              or-tools-${{matrix.distro}}-${{matrix.lang}}-amd64.tar.gz \
+              --title "Release ${{ github.ref_name }}" \
+              --generate-notes
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
